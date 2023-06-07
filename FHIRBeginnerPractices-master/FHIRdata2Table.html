@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+
+    <style type="text/css">
+        #Button1 {
+            height: 43px;
+            width: 140px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+    </style>
+    <script src="HTTP2019.js"></script>
+    <script src="Cookie.js"></script>
+    <script src="addTableEvent.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script>
+        var myObj;
+        function callBack() {
+            alert(ret);
+            console.log(ret);
+            myObj = JSON.parse(ret);
+
+        }
+
+        HTTPGetData("http://hapi.fhir.org/baseR4/Patient?organization=1921071");
+    </script>
+    <script>
+        
+
+        function rowClickFunction(cid) {
+            //  alert("id:" + cid);
+            setCookie("patientID", cid, 1);
+
+            // match clicked id with JSON data id
+            for (var i = 0; i < myObj.entry.length; i++) {
+                if (cid == myObj.entry[i].resource.id) {
+                    //  alert(myObj.entry[i].resource.name[0].text);
+                    setCookie("patientName", myObj.entry[i].resource.name[0].text, 1);
+                    setCookie("gender", myObj.entry[i].resource.gender, 1);
+                }
+            }
+            window.open("inputList.html");
+        }
+
+
+        function showData() {
+            var data = myObj.entry[0].resource.name[0].text;  //name[0].text;
+            //alert("data:" + data);
+            //自己加的
+            //var data1=myObj.entry.resource;
+            //alert("data1:"+data1);
+            var tableStr = "<tr> <th>id</th><th>name</th><th>gender</th><th>birthDate</th></tr>";
+
+
+            //alert("myObj.entry.length: " + myObj.entry.length);
+            console.log("myobj:" + myObj + "\nmyobj.entry:" + myObj.entry + "\nmyObj.entry.resource:" + myObj.entry.resource)
+            var count = 0;
+            for (i = 0; i < Object.keys(myObj.entry).length; i++) {
+                if (myObj.entry[i].resource.name != undefined) {
+                    //console.log("BBC");
+                    count++;
+                }
+            }
+            console.log("\ncount:" + count);
+            var result = "";
+
+            for (i = 0; i < count; i++) {
+
+
+                var trStr = "<tr>";
+
+                trStr = trStr + "<td>";
+                trStr = trStr + myObj.entry[i].resource.id;
+                trStr = trStr + "</td>";
+
+                trStr = trStr + "<td>";
+                trStr = trStr + myObj.entry[i].resource.name[0].text;
+                trStr = trStr + "</td>";
+
+                trStr = trStr + "<td>";
+                trStr = trStr + myObj.entry[i].resource.gender;
+                trStr = trStr + "</td>";
+
+                trStr = trStr + "<td>";
+                trStr = trStr + myObj.entry[i].resource.birthDate;
+                trStr = trStr + "</td>";
+
+                trStr = trStr + "</tr>";
+                tableStr = tableStr + trStr;
+                result += "\n\nId:" + myObj.entry[i].resource.id + "\n姓名:" + myObj.entry[i].resource.name[0].text + "\n性別:" + myObj.entry[i].resource.gender + "\n生日:" + myObj.entry[i].resource.birthDate;
+
+            }
+
+            document.getElementById("t1").innerHTML = tableStr;
+            addRowHandlers("t1");   // add event to table t1
+
+            swal(
+                "共有" + count + "筆資料" + result, {
+                icon: "success",
+                buttons: false,
+            })
+                .then((value) => {
+                    if (value !== "" && value !== null) {
+                        swal('Welcome back! ${value}.');
+                    }
+                });
+
+            var patients = myObj["entry"];
+            for (i = 0; i < count; i++) {
+                var section = document.createElement("section");
+                var myArticle = document.createElement("article");
+                //var myH2 = document.createElement("h2");
+                var myPara1 = document.createElement("p");
+                var myPara2 = document.createElement("p");
+                var myPara3 = document.createElement("p");
+                var myList = document.createElement("ul");
+
+
+                var patientNames = patients[i].resource.name[0].text;
+                console.log(patientNames);
+                //for (j = 0; j < patientNames; j++) {
+                var listItem = document.createElement("li");
+                listItem.textContent = patientNames;
+                myList.appendChild(listItem);
+                //}
+                //myH2.textContent = patients[i].name;
+                myPara1.textContent = i + 1 + ". BrithDate: " + myObj.entry[i].resource.birthDate;
+                myPara2.textContent = "gender: " + myObj.entry[i].resource.gender;
+                myPara3.textContent = "Name:";
+
+
+                //myArticle.appendChild(myH2);
+                myArticle.appendChild(myPara1);
+                myArticle.appendChild(myPara2);
+                myArticle.appendChild(myPara3);
+                myArticle.appendChild(myList);
+                section.appendChild(myArticle);
+                document.getElementById("s1").append(section);
+            }
+            
+
+        }
+    </script>
+
+</head>
+
+<body style="height: 780px">
+
+    <p>
+    <h3>請先按 get patient 按鈕，再點選表格中的病人</h3>
+    <input id="Button1" onclick="showData();" type="button" value="get patient" /></p>
+
+    <table id="t1"></table>
+    <section id="s1"></section>
+
+</body>
+
+</html>
